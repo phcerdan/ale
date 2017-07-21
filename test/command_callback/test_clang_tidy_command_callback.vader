@@ -42,11 +42,13 @@ Execute(The build directory setting should override the options):
   \ ale#Escape('clang-tidy')
   \   . ' -checks=' . ale#Escape('*') . ' %s -p ' . ale#Escape('/foo/bar')
 
-Execute(The build directory should be ignored for header files):
+Execute(The build directory should be ignored for header files with empty header_sourcefile):
   call ale#test#SetFilename('test.h')
 
   let b:ale_c_build_dir = '/foo/bar'
   let b:ale_cpp_clangtidy_options = '-Wall'
+  let b:ale_cpp_clangtidy_header_sourcefile = ''
+  let b:ale_cpp_clangtidy_header_suffixes = ['h', 'hpp', 'hxx']
 
   AssertLinter 'clang-tidy',
   \ ale#Escape('clang-tidy') . ' -checks=' . ale#Escape('*') . ' %s -- -Wall'
@@ -55,6 +57,17 @@ Execute(The build directory should be ignored for header files):
 
   AssertLinter 'clang-tidy',
   \ ale#Escape('clang-tidy') . ' -checks=' . ale#Escape('*') . ' %s -- -Wall'
+
+Execute(The header_sourcefile should be used when non-empty, not ignoring build_dir):
+  call ale#test#SetFilename('test.h')
+
+  let b:ale_c_build_dir = '/foo/bar'
+  let b:ale_cpp_clangtidy_options = '-Wall'
+  let b:ale_cpp_clangtidy_header_sourcefile = 'test.cpp'
+
+  AssertLinter 'clang-tidy',
+  \ ale#Escape('clang-tidy')
+  \   . ' -checks=' . ale#Escape('*') . ' ' . ale#Escape('test.cpp') . ' -p ' . ale#Escape('/foo/bar')
 
 Execute(The executable should be configurable):
   let b:ale_cpp_clangtidy_executable = 'foobar'
